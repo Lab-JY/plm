@@ -1,0 +1,79 @@
+[package]
+name = "plm"
+version = "0.1.0"
+edition = "2021"
+description = "PLM - Plugin Lifecycle Manager for any project"
+authors = ["PLM Team"]
+license = "Apache-2.0"
+repository = "https://github.com/plm/plm"
+keywords = ["plm", "plugin", "lifecycle", "manager", "config"]
+categories = ["development-tools", "command-line-utilities"]
+
+[[bin]]
+name = "plm"
+path = "src/main.rs"
+
+[lib]
+name = "plm"
+path = "src/lib.rs"
+
+[dependencies]
+# 核心依赖
+anyhow = "1.0"
+async-trait = "0.1"
+tokio = { version = "1.0", features = ["full"] }
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+thiserror = "1.0"
+
+# CLI 相关
+clap = { version = "4.0", features = ["derive", "env"] }
+colored = "2.0"
+console = "0.15"
+indicatif = "0.17"
+
+# 网络和文件处理
+reqwest = { version = "0.11", features = ["json", "stream", "rustls-tls"] }
+futures-util = "0.3"
+flate2 = "1.0"
+tar = "0.4"
+zip = "0.6"
+
+# 系统相关
+dirs = "5.0"
+which = "4.4"
+
+# 日志
+log = "0.4"
+env_logger = "0.10"
+
+# 配置和模板
+toml = "0.8"
+
+# 加密和校验
+sha2 = "0.10"
+
+# 其他工具
+regex = "1.10"
+tempfile = "3.0"
+chrono = { version = "0.4", features = ["serde"] }
+url = "2.4"
+
+[dev-dependencies]
+tokio-test = "0.4"
+tempfile = "3.0"
+
+[features]
+default = ["cli"]
+cli = []
+library = []
+
+[profile.release]
+opt-level = 3
+lto = true
+codegen-units = 1
+panic = "abort"
+strip = true
+
+[profile.release.package."*"]
+opt-level = 3
