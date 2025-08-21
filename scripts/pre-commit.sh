@@ -63,13 +63,19 @@ check_format() {
 check_clippy() {
     print_step "运行 Clippy 检查"
     
-    if cargo clippy --all-targets --all-features -- -D warnings > /dev/null 2>&1; then
+    # 先尝试运行 clippy 并捕获输出
+    if clippy_output=$(cargo clippy --all-targets --all-features -- -D warnings 2>&1); then
         print_success "Clippy 检查通过"
     else
         print_error "Clippy 检查失败"
         echo ""
         echo "请修复以下问题后重新提交:"
-        cargo clippy --all-targets --all-features -- -D warnings
+        echo "$clippy_output"
+        echo ""
+        echo "💡 常见修复方法:"
+        echo "  - 运行 'cargo clippy --fix' 自动修复部分问题"
+        echo "  - 查看具体错误信息并手动修复"
+        echo "  - 如需跳过检查，使用: git commit --no-verify"
         exit 1
     fi
 }

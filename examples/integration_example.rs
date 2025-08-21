@@ -12,6 +12,12 @@ pub struct CustomToolPlugin {
     config: HashMap<String, String>,
 }
 
+impl Default for CustomToolPlugin {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl CustomToolPlugin {
     pub fn new() -> Self {
         let metadata = PluginMetadata {

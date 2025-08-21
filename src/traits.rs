@@ -89,7 +89,7 @@ pub struct VersionInfo {
 }
 
 /// Installation options
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Default)]
 pub struct InstallOptions {
     /// Force installation
     pub force: bool,
@@ -103,19 +103,6 @@ pub struct InstallOptions {
     pub install_dir: Option<String>,
     /// Additional environment variables
     pub env_vars: HashMap<String, String>,
-}
-
-impl Default for InstallOptions {
-    fn default() -> Self {
-        Self {
-            force: false,
-            debug: false,
-            yes: false,
-            quiet: false,
-            install_dir: None,
-            env_vars: HashMap::new(),
-        }
-    }
 }
 
 /// Main plugin trait

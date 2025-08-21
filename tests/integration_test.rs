@@ -6,7 +6,6 @@ use plm::traits::{InstallOptions, Plugin, PluginError, PluginMetadata, PluginSta
 use plm::{PluginConfig, PluginManager, ProjectConfig};
 use std::collections::HashMap;
 use std::sync::Arc;
-use tokio;
 
 /// 测试用的模拟插件
 pub struct MockPlugin {
