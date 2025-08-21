@@ -1,13 +1,13 @@
 //! PLM 核心插件管理器实现
 
 use crate::config::{PluginConfig, ProjectConfig};
-use crate::traits::{Plugin, PluginError, InstallOptions, ValidationSummary};
+use crate::traits::{InstallOptions, Plugin, PluginError, ValidationSummary};
 use std::collections::HashMap;
 use std::sync::Arc;
 use tokio::fs;
 
 /// PLM 插件管理器
-/// 
+///
 /// 负责管理插件的生命周期，包括注册、初始化、安装、卸载等操作
 pub struct PluginManager {
     plugins: HashMap<String, Arc<dyn Plugin>>,
@@ -37,11 +37,16 @@ impl PluginManager {
         // 初始化所有已注册的插件
         for (name, plugin) in &mut self.plugins {
             if let Err(e) = Arc::get_mut(plugin)
-                .ok_or_else(|| PluginError::PluginError(format!("无法获取插件 {} 的可变引用", name)))?
+                .ok_or_else(|| {
+                    PluginError::PluginError(format!("无法获取插件 {} 的可变引用", name))
+                })?
                 .initialize()
                 .await
             {
-                return Err(PluginError::PluginError(format!("插件 {} 初始化失败: {}", name, e)));
+                return Err(PluginError::PluginError(format!(
+                    "插件 {} 初始化失败: {}",
+                    name, e
+                )));
             }
         }
         Ok(())
@@ -52,7 +57,9 @@ impl PluginManager {
         // 关闭所有插件
         for (name, plugin) in &mut self.plugins {
             if let Err(e) = Arc::get_mut(plugin)
-                .ok_or_else(|| PluginError::PluginError(format!("无法获取插件 {} 的可变引用", name)))?
+                .ok_or_else(|| {
+                    PluginError::PluginError(format!("无法获取插件 {} 的可变引用", name))
+                })?
                 .shutdown()
                 .await
             {
@@ -64,7 +71,11 @@ impl PluginManager {
     }
 
     /// 注册插件（用于测试）
-    pub async fn register_plugin_for_test(&mut self, name: String, plugin: Arc<dyn Plugin>) -> Result<(), PluginError> {
+    pub async fn register_plugin_for_test(
+        &mut self,
+        name: String,
+        plugin: Arc<dyn Plugin>,
+    ) -> Result<(), PluginError> {
         self.plugins.insert(name, plugin);
         Ok(())
     }
@@ -132,11 +143,11 @@ impl PluginManager {
     pub async fn save_config(&self, path: &str) -> Result<(), PluginError> {
         let config_json = serde_json::to_string_pretty(&self.config)
             .map_err(|e| PluginError::ConfigError(format!("序列化配置失败: {}", e)))?;
-        
+
         fs::write(path, config_json)
             .await
             .map_err(|e| PluginError::ConfigError(format!("写入配置文件失败: {}", e)))?;
-        
+
         Ok(())
     }
 
@@ -170,7 +181,10 @@ impl Drop for PluginManager {
     fn drop(&mut self) {
         // 在析构时尝试清理资源
         if !self.plugins.is_empty() {
-            eprintln!("警告: PluginManager 被销毁时仍有 {} 个插件未正确关闭", self.plugins.len());
+            eprintln!(
+                "警告: PluginManager 被销毁时仍有 {} 个插件未正确关闭",
+                self.plugins.len()
+            );
         }
     }
 }

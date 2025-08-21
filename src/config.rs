@@ -1,9 +1,9 @@
 //! PLM 配置管理模块
 
+use crate::traits::PluginError;
+use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
-use chrono::{DateTime, Utc};
-use crate::traits::PluginError;
 
 /// 项目配置
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -12,7 +12,7 @@ pub struct ProjectConfig {
     pub global_settings: GlobalSettings,
     pub plugins: HashMap<String, PluginConfig>,
     pub sources: Vec<PluginSource>,
-    
+
     // 兼容性字段
     pub project_name: String,
     pub project_root: String,
@@ -114,15 +114,13 @@ impl ProjectConfig {
             },
             global_settings: settings.clone(),
             plugins: HashMap::new(),
-            sources: vec![
-                PluginSource {
-                    source_type: PluginSourceType::Registry,
-                    url: "https://registry.plm.dev".to_string(),
-                    branch: None,
-                    tag: None,
-                    token: None,
-                },
-            ],
+            sources: vec![PluginSource {
+                source_type: PluginSourceType::Registry,
+                url: "https://registry.plm.dev".to_string(),
+                branch: None,
+                tag: None,
+                token: None,
+            }],
             // 兼容性字段
             project_name: name.to_string(),
             project_root: root_path.to_string(),
@@ -140,12 +138,13 @@ impl ProjectConfig {
 
     /// 从文件加载配置（兼容性方法）
     pub async fn load_from_file(path: &str) -> Result<Self, PluginError> {
-        let content = tokio::fs::read_to_string(path).await
+        let content = tokio::fs::read_to_string(path)
+            .await
             .map_err(|e| PluginError::ConfigError(format!("Failed to read config file: {}", e)))?;
-        
+
         let config: Self = serde_json::from_str(&content)
             .map_err(|e| PluginError::ConfigError(format!("Failed to parse config: {}", e)))?;
-        
+
         Ok(config)
     }
 
@@ -160,34 +159,42 @@ impl ProjectConfig {
     pub async fn save_to_file(&self, path: &str) -> Result<(), PluginError> {
         let content = serde_json::to_string_pretty(self)
             .map_err(|e| PluginError::ConfigError(format!("Failed to serialize config: {}", e)))?;
-        
-        tokio::fs::write(path, content).await
+
+        tokio::fs::write(path, content)
+            .await
             .map_err(|e| PluginError::ConfigError(format!("Failed to write config file: {}", e)))?;
-        
+
         Ok(())
     }
 
     /// 验证配置
     pub fn validate(&self) -> Result<(), PluginError> {
         if self.project_name.is_empty() {
-            return Err(PluginError::ConfigError("Project name cannot be empty".to_string()));
+            return Err(PluginError::ConfigError(
+                "Project name cannot be empty".to_string(),
+            ));
         }
 
         if self.project_root.is_empty() {
-            return Err(PluginError::ConfigError("Project root cannot be empty".to_string()));
+            return Err(PluginError::ConfigError(
+                "Project root cannot be empty".to_string(),
+            ));
         }
 
         for (name, plugin) in &self.plugins {
             if plugin.name != *name {
-                return Err(PluginError::ConfigError(
-                    format!("Plugin name mismatch: key '{}' vs config '{}'", name, plugin.name)
-                ));
+                return Err(PluginError::ConfigError(format!(
+                    "Plugin name mismatch: key '{}' vs config '{}'",
+                    name, plugin.name
+                )));
             }
         }
 
         for source in &self.sources {
             if source.url.is_empty() {
-                return Err(PluginError::ConfigError("Plugin source URL cannot be empty".to_string()));
+                return Err(PluginError::ConfigError(
+                    "Plugin source URL cannot be empty".to_string(),
+                ));
             }
         }
 
@@ -225,7 +232,12 @@ impl ProjectConfig {
     }
 
     /// 更新插件设置
-    pub fn update_plugin_setting(&mut self, plugin_name: &str, key: &str, value: serde_json::Value) -> Result<(), String> {
+    pub fn update_plugin_setting(
+        &mut self,
+        plugin_name: &str,
+        key: &str,
+        value: serde_json::Value,
+    ) -> Result<(), String> {
         if let Some(plugin) = self.plugins.get_mut(plugin_name) {
             plugin.set_setting(key, value);
             Ok(())
@@ -428,12 +440,21 @@ mod tests {
     #[test]
     fn test_plugin_settings() {
         let mut plugin = PluginConfig::new("test-plugin");
-        
+
         plugin.set_setting("debug", serde_json::Value::Bool(true));
-        plugin.set_setting("timeout", serde_json::Value::Number(serde_json::Number::from(30)));
-        
-        assert_eq!(plugin.get_setting("debug"), Some(&serde_json::Value::Bool(true)));
-        assert_eq!(plugin.get_setting("timeout"), Some(&serde_json::Value::Number(serde_json::Number::from(30))));
+        plugin.set_setting(
+            "timeout",
+            serde_json::Value::Number(serde_json::Number::from(30)),
+        );
+
+        assert_eq!(
+            plugin.get_setting("debug"),
+            Some(&serde_json::Value::Bool(true))
+        );
+        assert_eq!(
+            plugin.get_setting("timeout"),
+            Some(&serde_json::Value::Number(serde_json::Number::from(30)))
+        );
         assert_eq!(plugin.get_setting("nonexistent"), None);
     }
 }

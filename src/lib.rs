@@ -1,5 +1,5 @@
 //! PLM - Plugin Lifecycle Manager
-//! 
+//!
 //! This library provides a complete plugin lifecycle management system that can be
 //! integrated into any Rust project through simple configuration.
 
@@ -26,7 +26,9 @@ pub async fn init_default() -> Result<PluginManager, PluginError> {
 /// Quick setup for projects - creates default configuration
 pub async fn quick_setup(project_name: &str, project_root: &str) -> Result<(), PluginError> {
     let config = ProjectConfig::default_for_project(project_name, project_root);
-    config.save_to_file(&format!("{}/plm.json", project_root)).await?;
+    config
+        .save_to_file(&format!("{}/plm.json", project_root))
+        .await?;
     println!("✅ PLM 配置文件已创建: {}/plm.json", project_root);
     Ok(())
 }
