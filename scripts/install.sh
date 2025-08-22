@@ -32,7 +32,7 @@ print_error() {
 }
 
 # 默认配置
-REPO="plm/plm"  # 替换为您的实际仓库
+REPO="Lab-JY/plm"
 INSTALL_DIR="/usr/local/bin"
 BINARY_NAME="plm"
 
